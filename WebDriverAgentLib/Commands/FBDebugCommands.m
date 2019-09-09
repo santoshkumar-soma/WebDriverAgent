@@ -63,7 +63,7 @@ static NSString *const SOURCE_FORMAT_DESCRIPTION = @"description";
 + (id<FBResponsePayload>)handleGetAccessibleSourceCommand:(FBRouteRequest *)request
 {
   // This method might be called without session
-  FBApplication *application = request.session.activeApplication ?: FBApplication.fb_activeApplication;
+  FBApplication *application = request.session.activeApplication;
   return FBResponseWithObject(application.fb_accessibilityTree ?: @{});
 }
 

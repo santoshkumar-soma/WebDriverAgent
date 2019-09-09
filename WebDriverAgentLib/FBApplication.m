@@ -26,7 +26,7 @@
 #import "XCUIApplicationProcessQuiescence.h"
 
 
-static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
+static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 7.0;
 
 @interface FBApplication ()
 @property (nonatomic, assign) BOOL fb_isObservingAppImplCurrentProcess;
@@ -43,6 +43,7 @@ static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
 {
   NSArray<XCAccessibilityElement *> *activeApplicationElements = [FBXCAXClientProxy.sharedClient activeApplications];
   XCAccessibilityElement *activeApplicationElement = nil;
+  NSLog(@"%lu", activeApplicationElements.count);
   if (activeApplicationElements.count > 1) {
     if (nil != bundleId) {
       // Try to select the desired application first
@@ -66,13 +67,22 @@ static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
           }
         }
       }
+      if (nil == activeApplicationElement ) {
+        
+        //XCUIApplication *app = [[XCUIApplication alloc] init];
+        //return app.applicationWithPID
+        XCAccessibilityElement *currentElement = self.class.fb_onScreenElement;
+        FBApplication *application = [FBApplication fb_applicationWithPID:currentElement.processIdentifier];
+        return application;
+      }
     }
   }
+  
   if (nil == activeApplicationElement && activeApplicationElements.count > 0) {
     activeApplicationElement = [activeApplicationElements firstObject];
   } else {
-    NSString *errMsg = @"No applications are currently active";
-    @throw [NSException exceptionWithName:FBElementNotVisibleException reason:errMsg userInfo:nil];
+    //NSString *errMsg = @"No applications are currently active";
+    //@throw [NSException exceptionWithName:FBElementNotVisibleException reason:errMsg userInfo:nil];
   }
   FBApplication *application = [FBApplication fb_applicationWithPID:activeApplicationElement.processIdentifier];
   NSAssert(nil != application, @"Active application instance is not expected to be equal to nil", nil);
@@ -123,7 +133,8 @@ static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
   [super launch];
   [FBApplication fb_registerApplication:self withProcessID:self.processID];
   if (![self fb_waitForAppElement:APP_STATE_CHANGE_TIMEOUT]) {
-    [FBLogger logFmt:@"The application '%@' is not running in foreground after %.2f seconds", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
+    NSString *reason = [NSString stringWithFormat:@"The application '%@' is not running in foreground after %.2f seconds", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
+    @throw [NSException exceptionWithName:FBTimeoutException reason:reason userInfo:@{}];
   }
 }
 

@@ -63,14 +63,15 @@ static NSString* const FBUnknownBundleId = @"unknown";
 
 - (BOOL)fb_waitForAppElement:(NSTimeInterval)timeout
 {
-  return [[[FBRunLoopSpinner new]
+  return true;
+  /*return [[[FBRunLoopSpinner new]
            timeout:timeout]
           spinUntilTrue:^BOOL{
     XCAccessibilityElement *currentAppElement = self.class.fb_onScreenElement;
     int currentProcessIdentifier = self.accessibilityElement.processIdentifier;
     return nil != currentAppElement
       && currentAppElement.processIdentifier == currentProcessIdentifier;
-  }];
+  }];*/
 }
 
 + (NSArray<NSDictionary<NSString *, id> *> *)fb_appsInfoWithAxElements:(NSArray<XCAccessibilityElement *> *)axElements
@@ -154,6 +155,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
 {
   NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
   info[@"type"] = [FBElementTypeTransformer shortStringWithElementType:snapshot.elementType];
+  NSLog(@"%@ snapshot identifier", snapshot.identifier);
   info[@"rawIdentifier"] = FBValueOrNull([snapshot.identifier isEqual:@""] ? nil : snapshot.identifier);
   info[@"name"] = FBValueOrNull(snapshot.wdName);
   info[@"value"] = FBValueOrNull(snapshot.wdValue);

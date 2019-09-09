@@ -16,7 +16,7 @@
 #import "XCUIApplication+FBHelpers.h"
 #import "XCUIElementQuery.h"
 
-static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
+static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 1.0;
 
 static BOOL FBShouldUseOldElementRootSelector = NO;
 static dispatch_once_t onceRootElementToken;
@@ -77,17 +77,18 @@ static dispatch_once_t onceAppWithPIDToken;
 - (void)fb_activate
 {
   [self activate];
-  if (![self fb_waitForAppElement:APP_STATE_CHANGE_TIMEOUT]) {
-    [FBLogger logFmt:@"The application '%@' is not running in foreground after %.2f seconds", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
-  }
+  /*if (![self fb_waitForAppElement:APP_STATE_CHANGE_TIMEOUT]) {
+    NSString *reason = [NSString stringWithFormat:@"The application '%@' is not running in foreground after %.2f seconds", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
+    @throw [NSException exceptionWithName:FBTimeoutException reason:reason userInfo:@{}];
+  }*/
 }
 
 - (void)fb_terminate
 {
   [self terminate];
-  if (![self waitForState:XCUIApplicationStateNotRunning timeout:APP_STATE_CHANGE_TIMEOUT]) {
+  /*if (![self waitForState:XCUIApplicationStateNotRunning timeout:APP_STATE_CHANGE_TIMEOUT]) {
     [FBLogger logFmt:@"The active application is still '%@' after %.2f seconds timeout", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
-  }
+  }*/
 }
 
 - (NSUInteger)fb_state

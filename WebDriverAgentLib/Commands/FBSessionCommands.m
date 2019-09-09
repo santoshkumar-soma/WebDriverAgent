@@ -112,7 +112,7 @@ static NSString* const DEFAULT_ACTIVE_APPLICATION = @"defaultActiveApplication";
     [XCUIApplicationProcessDelay disableEventLoopDelay];
   }
 
-  [FBConfiguration setShouldWaitForQuiescence:[requirements[@"shouldWaitForQuiescence"] boolValue]];
+  //[FBConfiguration setShouldWaitForQuiescence:[requirements[@"shouldWaitForQuiescence"] boolValue]];
 
   NSString *bundleID = requirements[@"bundleId"];
   FBApplication *app = nil;

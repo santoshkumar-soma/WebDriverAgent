@@ -140,9 +140,14 @@ static FBSession *_activeSession;
 
 - (FBApplication *)activeApplication
 {
+  
+  NSLog(@"%@", FBDefaultApplicationAuto);
+  NSLog(@"%@", self.defaultActiveApplication);
   NSString *defaultBundleId = [self.defaultActiveApplication isEqualToString:FBDefaultApplicationAuto]
     ? nil
     : self.defaultActiveApplication;
+  
+   NSLog(@"%@", defaultBundleId);
   FBApplication *application = [FBApplication fb_activeApplicationWithDefaultBundleId:defaultBundleId];
   FBApplication *testedApplication = nil;
   if (self.testedApplicationBundleId) {
@@ -155,6 +160,8 @@ static FBSession *_activeSession;
   if (nil != self.alertsMonitor) {
     self.alertsMonitor.application = application;
   }
+  
+  NSLog(@"%@", application);
   return application;
 }
 
