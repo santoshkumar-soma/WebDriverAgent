@@ -61,9 +61,12 @@
   return YES;
 }
 
-- (BOOL)fb_clearTextWithError:(NSError **)error
+
+
+- (BOOL)fb_clearTextWithError:(NSString *)text error:(NSError **)error;
 {
-  if (0 == [self.value fb_visualLength]) {
+  
+  if (0 == [text fb_visualLength]) {
     return YES;
   }
 
@@ -74,9 +77,9 @@
   NSUInteger preClearTextLength = 0;
   NSData *encodedSequence = [@"\\u0008\\u007F" dataUsingEncoding:NSASCIIStringEncoding];
   NSString *backspaceDeleteSequence = [[NSString alloc] initWithData:encodedSequence encoding:NSNonLossyASCIIStringEncoding];
-  while ([self.value fb_visualLength] != preClearTextLength) {
+  while ([text fb_visualLength] != preClearTextLength) {
     NSMutableString *textToType = @"".mutableCopy;
-    preClearTextLength = [self.value fb_visualLength];
+    preClearTextLength = [text fb_visualLength];
     for (NSUInteger i = 0 ; i < preClearTextLength ; i++) {
       [textToType appendString:backspaceDeleteSequence];
     }

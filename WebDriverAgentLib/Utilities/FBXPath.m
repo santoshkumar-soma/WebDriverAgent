@@ -207,7 +207,7 @@ NSString *const FBXPathQueryEvaluationException = @"FBXPathQueryEvaluationExcept
   rc = [self writeXmlWithRootElement:root
                            indexPath:(elementStore != nil ? topNodeIndexPath : nil)
                         elementStore:elementStore
-                  includedAttributes:(query == nil ? nil : [self.class elementAttributesWithXPathQuery:query])
+                  includedAttributes:(query == nil ? nil: [self.class elementAttributesWithXPathQuery:query])
                               writer:writer];
   if (rc < 0) {
     [FBLogger log:@"Failed to generate XML presentation of a screen element"];

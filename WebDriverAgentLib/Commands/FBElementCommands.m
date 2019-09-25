@@ -255,8 +255,13 @@
     return FBResponseWithStatus([FBCommandStatus staleElementReferenceErrorWithMessage:nil
                                                                              traceback:nil]);
   }
+  
+  id text = FBFirstNonEmptyValue(element.wdValue, element.wdLabel);
+  text = text ?: @"";
+  
   NSError *error;
-  if (![element fb_clearTextWithError:&error]) {
+  
+  if (![element fb_clearTextWithError:text error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
   }
   return FBResponseWithOK();

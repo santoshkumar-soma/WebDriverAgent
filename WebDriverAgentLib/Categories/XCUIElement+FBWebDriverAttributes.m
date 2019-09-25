@@ -30,7 +30,9 @@
   
   if ([name isEqualToString:FBStringify(XCUIElement, isWDVisible)]
              || [name isEqualToString:FBStringify(XCUIElement, isWDAccessible)]
-             || [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]) {
+             || [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]
+             || [name isEqualToString:FBStringify(XCUIElement, wdValue)]
+             || [name isEqualToString:FBStringify(XCUIElement, wdName)]) {
     // These attrbiutes are special, because we can only retrieve them from
     // the snapshot if we explicitly ask XCTest to include them into the query while taking it.
     // That is why fb_snapshotWithAttributes method must be used instead of the default fb_lastSnapshot
@@ -103,8 +105,14 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSMutable
 {
   id (^getter)(void) = ^id(void) {
     id value = self.value;
+    id name = self.label;
     XCUIElementType elementType = self.elementType;
-    if (elementType == XCUIElementTypeStaticText) {
+    NSLog(@"%@ ####name", name);
+    NSLog(@"%@ ####value", value);
+    NSLog(@"%lu ####elementType", elementType);
+    NSString *label = self.label;
+    value = FBFirstNonEmptyValue(value, label);
+    if (elementType == XCUIElementTypeStaticText||elementType==XCUIElementTypeOther) {
       NSString *label = self.label;
       value = FBFirstNonEmptyValue(value, label);
     } else if (elementType == XCUIElementTypeButton) {
@@ -114,7 +122,8 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSMutable
       value = @([value boolValue]);
     } else if (elementType == XCUIElementTypeTextView ||
                elementType == XCUIElementTypeTextField ||
-               elementType == XCUIElementTypeSecureTextField) {
+               elementType == XCUIElementTypeSecureTextField||
+               elementType == XCUIElementTypeSearchField) {
       NSString *placeholderValue = self.placeholderValue;
       value = FBFirstNonEmptyValue(value, placeholderValue);
     }
