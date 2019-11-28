@@ -89,6 +89,58 @@
   return YES;
 }
 
+- (BOOL)fb_clearTextWithError:(NSString *)text error:(NSError **)error;
+{
+  id currentValue = text;
+  if (nil != currentValue && ![currentValue isKindOfClass:NSString.class]) {
+    return [[[FBErrorBuilder builder]
+               withDescriptionFormat:@"The value of '%@' element is not a string and thus cannot be cleared", self.description]
+              buildError:error];
+  }
+  
+  if (nil == currentValue || 0 == [currentValue fb_visualLength]) {
+    // Short circuit if the content is not present
+    return YES;
+  }
+
+  if (![self fb_prepareForTextInputWithError:error]) {
+    return NO;
+  }
+  
+  static NSString *backspaceDeleteSequence;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    backspaceDeleteSequence = [[NSString alloc] initWithData:(NSData *)[@"\\u0008\\u007F" dataUsingEncoding:NSASCIIStringEncoding]
+                                                    encoding:NSNonLossyASCIIStringEncoding];
+  });
+  
+  NSUInteger retry = 0;
+  NSString *placeholderValue = self.placeholderValue;
+  NSUInteger preClearTextLength = [currentValue fb_visualLength];
+  do {
+    if (retry >= MAX_CLEAR_RETRIES - 1) {
+      // Last chance retry. Tripple-tap the field to select its content
+      [self tapWithNumberOfTaps:3 numberOfTouches:1];
+      return [FBKeyboard typeText:backspaceDeleteSequence error:error];
+    }
+
+    NSString *textToType = [backspaceDeleteSequence fb_repeatTimes:preClearTextLength];
+    if (![FBKeyboard typeText:textToType error:error]) {
+      return NO;
+    }
+
+    currentValue = self.value;
+    if (nil != placeholderValue && [currentValue isEqualToString:placeholderValue]) {
+      // Short circuit if only the placeholder value left
+      return YES;
+    }
+    preClearTextLength = [currentValue fb_visualLength];
+
+    retry++;
+  } while (preClearTextLength > 0);
+  return YES;
+}
+
 - (BOOL)fb_clearTextWithError:(NSError **)error
 {
   id currentValue = self.value;

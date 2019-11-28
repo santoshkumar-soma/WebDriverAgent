@@ -37,8 +37,11 @@
     return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsVisibleAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
   }
   if ([name isEqualToString:FBStringify(XCUIElement, isWDAccessible)] ||
-      [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]) {
-    return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsElementAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
+      [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]
+      ||[name isEqualToString:FBStringify(XCUIElement, wdValue)]
+      ||[name isEqualToString:FBStringify(XCUIElement, wdName)]) {
+    return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsElementAttributeName,FB_ValueAttributeName,FB_TitleAttributeName,FB_ElementTypeAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
+    
   }
   
   return self.fb_lastSnapshot ?: [XCElementSnapshot new];
@@ -106,8 +109,10 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSMutable
 {
   id (^getter)(void) = ^id(void) {
     id value = self.value;
+    id name = self.label;
+    NSLog(@"%@ ####name", name);
     XCUIElementType elementType = self.elementType;
-    if (elementType == XCUIElementTypeStaticText) {
+    if (elementType == XCUIElementTypeStaticText||elementType==XCUIElementTypeOther) {
       NSString *label = self.label;
       value = FBFirstNonEmptyValue(value, label);
     } else if (elementType == XCUIElementTypeButton) {
@@ -117,7 +122,8 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSMutable
       value = @([value boolValue]);
     } else if (elementType == XCUIElementTypeTextView ||
                elementType == XCUIElementTypeTextField ||
-               elementType == XCUIElementTypeSecureTextField) {
+               elementType == XCUIElementTypeSecureTextField||
+               elementType == XCUIElementTypeSearchField) {
       NSString *placeholderValue = self.placeholderValue;
       value = FBFirstNonEmptyValue(value, placeholderValue);
     }

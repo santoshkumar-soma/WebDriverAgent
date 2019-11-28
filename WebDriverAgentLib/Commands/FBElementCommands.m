@@ -216,6 +216,7 @@
   NSString *textToType = [value isKindOfClass:NSArray.class]
     ? [value componentsJoinedByString:@""]
     : value;
+  
 #if !TARGET_OS_TV
   if (element.elementType == XCUIElementTypePickerWheel) {
     [element adjustToPickerWheelValue:textToType];
@@ -255,6 +256,9 @@
 #endif
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
   }
+    
+  FBApplication *application = FBApplication.fb_activeApplication;
+  NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
   return FBResponseWithOK();
 }
 
@@ -263,12 +267,22 @@
   FBElementCache *elementCache = request.session.elementCache;
   NSString *elementUUID = request.parameters[@"uuid"];
   XCUIElement *element = [elementCache elementForUUID:elementUUID];
+  
   if (nil == element) {
     return FBResponseWithStatus([FBCommandStatus staleElementReferenceErrorWithMessage:nil
                                                                              traceback:nil]);
   }
+
+  if(!element.exists)
+  {
+    FBApplication *application = FBApplication.fb_activeApplication;
+    NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
+  }
+  
+  id text = FBFirstNonEmptyValue(element.wdValue, element.wdLabel);
+  text = text ?: @"";
   NSError *error;
-  if (![element fb_clearTextWithError:&error]) {
+  if (![element fb_clearTextWithError:text error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
   }
   return FBResponseWithOK();

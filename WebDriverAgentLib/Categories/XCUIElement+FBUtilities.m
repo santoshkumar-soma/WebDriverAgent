@@ -88,7 +88,7 @@ static const NSTimeInterval FB_ANIMATION_TIMEOUT = 5.0;
   
   [self fb_nativeResolve];
   
-  NSTimeInterval axTimeout = [FBConfiguration snapshotTimeout];
+  NSTimeInterval axTimeout = 600;//[FBConfiguration snapshotTimeout];
   __block XCElementSnapshot *snapshotWithAttributes = nil;
   __block NSError *innerError = nil;
   id<XCTestManager_ManagerInterface> proxy = [FBXCTestDaemonsProxy testRunnerProxy];
@@ -110,7 +110,8 @@ static const NSTimeInterval FB_ANIMATION_TIMEOUT = 5.0;
       dispatch_semaphore_signal(sem);
     }];
   }];
-  dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(axTimeout * NSEC_PER_SEC)));
+  //dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(axTimeout * NSEC_PER_SEC)));
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
   if (nil == snapshotWithAttributes) {
     [FBLogger logFmt:@"Cannot take the snapshot of %@ after %@ seconds", self.description, @(axTimeout)];
     if (nil != innerError) {
