@@ -39,6 +39,12 @@ static NSUInteger FBScreenshotQuality = 1;
 static NSUInteger FBMjpegScalingFactor = 100;
 static NSTimeInterval FBSnapshotTimeout = 15.;
 static BOOL FBShouldUseFirstMatch = NO;
+// This is diabled by default because enabling it prevents the accessbility snapshot to be taken
+// (it always errors with kxIllegalArgument error)
+static BOOL FBIncludeNonModalElements = NO;
+static NSString *FBAcceptAlertButtonSelector = @"";
+static NSString *FBDismissAlertButtonSelector = @"";
+
 
 @implementation FBConfiguration
 
@@ -201,6 +207,7 @@ static BOOL FBShouldUseFirstMatch = NO;
   // This can avoid 'Keyboard is not present' error which can happen
   // when send_keys are called by client
   [[UIKeyboardImpl sharedInstance] setAutomaticMinimizationEnabled:NO];
+  [[UIKeyboardImpl sharedInstance] setSoftwareKeyboardShownByTouch:YES];
 #endif
 
   void *handle = dlopen(controllerPrefBundlePath, RTLD_LAZY);
@@ -209,27 +216,32 @@ static BOOL FBShouldUseFirstMatch = NO;
 
   TIPreferencesController *controller = [controllerClass sharedPreferencesController];
   // Auto-Correction in Keyboards
+  // 'setAutocorrectionEnabled' Was in TextInput.framework/TIKeyboardState.h over iOS 10.3
   if ([controller respondsToSelector:@selector(setAutocorrectionEnabled:)]) {
+    // Under iOS 10.2
     controller.autocorrectionEnabled = NO;
-  } else {
+  } else if ([controller respondsToSelector:@selector(setValue:forPreferenceKey:)]) {
+    // Over iOS 10.3
     [controller setValue:@NO forPreferenceKey:FBKeyboardAutocorrectionKey];
   }
 
   // Predictive in Keyboards
   if ([controller respondsToSelector:@selector(setPredictionEnabled:)]) {
     controller.predictionEnabled = NO;
-  } else {
+  } else if ([controller respondsToSelector:@selector(setValue:forPreferenceKey:)]) {
     [controller setValue:@NO forPreferenceKey:FBKeyboardPredictionKey];
   }
 
   // To dismiss keyboard tutorial on iOS 11+ (iPad)
-  if (isSDKVersionGreaterThanOrEqualTo(@"11.0")) {
-    [controller setValue:@YES forPreferenceKey:@"DidShowGestureKeyboardIntroduction"];
+  if ([controller respondsToSelector:@selector(setValue:forPreferenceKey:)]) {
+    if (isSDKVersionGreaterThanOrEqualTo(@"11.0")) {
+      [controller setValue:@YES forPreferenceKey:@"DidShowGestureKeyboardIntroduction"];
+    }
+    if (isSDKVersionGreaterThanOrEqualTo(@"13.0")) {
+      [controller setValue:@YES forPreferenceKey:@"DidShowContinuousPathIntroduction"];
+    }
+    [controller synchronizePreferences];
   }
-  if (isSDKVersionGreaterThanOrEqualTo(@"13.0")) {
-    [controller setValue:@YES forPreferenceKey:@"DidShowContinuousPathIntroduction"];
-  }
-  [controller synchronizePreferences];
 
   dlclose(handle);
 }
@@ -241,7 +253,7 @@ static BOOL FBShouldUseFirstMatch = NO;
 
 + (void)setKeyboardAutocorrection:(BOOL)isEnabled
 {
-  [self configureKeyboardsPreference:@(isEnabled) forPreferenceKey:FBKeyboardAutocorrectionKey];
+  [self configureKeyboardsPreference:isEnabled forPreferenceKey:FBKeyboardAutocorrectionKey];
 }
 
 + (BOOL)keyboardPrediction
@@ -251,7 +263,7 @@ static BOOL FBShouldUseFirstMatch = NO;
 
 + (void)setKeyboardPrediction:(BOOL)isEnabled
 {
-  [self configureKeyboardsPreference:@(isEnabled) forPreferenceKey:FBKeyboardPredictionKey];
+  [self configureKeyboardsPreference:isEnabled forPreferenceKey:FBKeyboardPredictionKey];
 }
 
 + (void)setSnapshotTimeout:(NSTimeInterval)timeout
@@ -274,6 +286,36 @@ static BOOL FBShouldUseFirstMatch = NO;
   return FBShouldUseFirstMatch;
 }
 
++ (void)setIncludeNonModalElements:(BOOL)isEnabled
+{
+  FBIncludeNonModalElements = isEnabled;
+}
+
++ (BOOL)includeNonModalElements
+{
+  return FBIncludeNonModalElements;
+}
+
++ (void)setAcceptAlertButtonSelector:(NSString *)classChainSelector
+{
+  FBAcceptAlertButtonSelector = classChainSelector;
+}
+
++ (NSString *)acceptAlertButtonSelector
+{
+  return FBAcceptAlertButtonSelector;
+}
+
++ (void)setDismissAlertButtonSelector:(NSString *)classChainSelector
+{
+  FBDismissAlertButtonSelector = classChainSelector;
+}
+
++ (NSString *)dismissAlertButtonSelector
+{
+  return FBDismissAlertButtonSelector;
+}
+
 #pragma mark Private
 
 + (BOOL)keyboardsPreference:(nonnull NSString *)key
@@ -288,7 +330,7 @@ static BOOL FBShouldUseFirstMatch = NO;
   @throw [[FBErrorBuilder.builder withDescriptionFormat:@"No available keyboardsPreferenceKey: '%@'", key] build];
 }
 
-+ (void)configureKeyboardsPreference:(nonnull NSValue *)value forPreferenceKey:(nonnull NSString *)key
++ (void)configureKeyboardsPreference:(BOOL)enable forPreferenceKey:(nonnull NSString *)key
 {
   void *handle = dlopen(controllerPrefBundlePath, RTLD_LAZY);
   Class controllerClass = NSClassFromString(controllerClassName);
@@ -298,16 +340,16 @@ static BOOL FBShouldUseFirstMatch = NO;
   if ([key isEqualToString:FBKeyboardAutocorrectionKey]) {
     // Auto-Correction in Keyboards
     if ([controller respondsToSelector:@selector(setAutocorrectionEnabled:)]) {
-      controller.autocorrectionEnabled = value;
+      controller.autocorrectionEnabled = enable;
     } else {
-      [controller setValue:value forPreferenceKey:FBKeyboardAutocorrectionKey];
+      [controller setValue:@(enable) forPreferenceKey:FBKeyboardAutocorrectionKey];
     }
   } else if ([key isEqualToString:FBKeyboardPredictionKey]) {
     // Predictive in Keyboards
     if ([controller respondsToSelector:@selector(setPredictionEnabled:)]) {
-      controller.predictionEnabled = value;
+      controller.predictionEnabled = enable;
     } else {
-      [controller setValue:value forPreferenceKey:FBKeyboardPredictionKey];
+      [controller setValue:@(enable) forPreferenceKey:FBKeyboardPredictionKey];
     }
   }
 

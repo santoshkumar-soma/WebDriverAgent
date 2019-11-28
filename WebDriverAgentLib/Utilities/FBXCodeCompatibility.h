@@ -77,6 +77,27 @@ extern NSString *const FBApplicationMethodNotSupportedException;
  */
 - (void)fb_nativeResolve;
 
+/**
+ Determines whether current iOS SDK supports non modal elements inlusion into snapshots
+
+ @return Either YES or NO
+ */
++ (BOOL)fb_supportsNonModalElementsInclusion;
+
+/**
+ Retrieves element query
+
+ @return Element query property extended with non modal elements depending on the actual configuration
+ */
+- (XCUIElementQuery *)fb_query;
+
+/**
+ Determines whether Xcode 11 snapshots API is supported
+
+ @return Eiter YES or NO
+ */
++ (BOOL)fb_isSdk11SnapshotApiSupported;
+
 @end
 
 NS_ASSUME_NONNULL_END
