@@ -38,14 +38,21 @@ static NSString* const FBUnknownBundleId = @"unknown";
 
 - (BOOL)fb_waitForAppElement:(NSTimeInterval)timeout
 {
-  return [[[FBRunLoopSpinner new]
+  __block BOOL canDetectAxElement = YES;
+  int currentProcessIdentifier = self.accessibilityElement.processIdentifier;
+  BOOL result = [[[FBRunLoopSpinner new]
            timeout:timeout]
           spinUntilTrue:^BOOL{
     XCAccessibilityElement *currentAppElement = FBActiveAppDetectionPoint.sharedInstance.axElement;
-    int currentProcessIdentifier = self.accessibilityElement.processIdentifier;
-    return nil != currentAppElement
-      && currentAppElement.processIdentifier == currentProcessIdentifier;
+    canDetectAxElement = nil != currentAppElement;
+    if (!canDetectAxElement) {
+      return YES;
+    }
+    return currentAppElement.processIdentifier == currentProcessIdentifier;
   }];
+  return canDetectAxElement
+    ? result
+    : [self waitForExistenceWithTimeout:timeout];
 }
 
 + (NSArray<NSDictionary<NSString *, id> *> *)fb_appsInfoWithAxElements:(NSArray<XCAccessibilityElement *> *)axElements
@@ -91,7 +98,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
 
 - (NSDictionary *)fb_tree
 {
-  XCElementSnapshot *snapshot = self.fb_lastSnapshot;
+  XCElementSnapshot *snapshot = self.fb_cachedSnapshot ?: self.fb_lastSnapshot;
   NSMutableDictionary *rootTree = [[self.class dictionaryForElement:snapshot recursive:NO] mutableCopy];
   NSArray<XCUIElement *> *children = [self fb_filterDescendantsWithSnapshots:snapshot.children
                                                                      selfUID:snapshot.wdUID
@@ -226,5 +233,21 @@ static NSString* const FBUnknownBundleId = @"unknown";
           fb_firstMatch];
 }
 #endif
+
++ (NSInteger)fb_testmanagerdVersion
+{
+  static dispatch_once_t getTestmanagerdVersion;
+  static NSInteger testmanagerdVersion;
+  dispatch_once(&getTestmanagerdVersion, ^{
+    id<XCTestManager_ManagerInterface> proxy = [FBXCTestDaemonsProxy testRunnerProxy];
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    [proxy _XCT_exchangeProtocolVersion:testmanagerdVersion reply:^(unsigned long long code) {
+      testmanagerdVersion = (NSInteger) code;
+      dispatch_semaphore_signal(sem);
+    }];
+    dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)));
+  });
+  return testmanagerdVersion;
+}
 
 @end

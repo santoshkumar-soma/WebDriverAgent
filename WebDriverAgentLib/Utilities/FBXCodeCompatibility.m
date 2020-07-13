@@ -70,6 +70,10 @@ static dispatch_once_t onceAppWithPIDToken;
   dispatch_once(&onceAppWithPIDToken, ^{
     FBShouldUseOldAppWithPIDSelector = [XCUIApplication respondsToSelector:@selector(appWithPID:)];
   });
+  if (0 == processID) {
+    return nil;
+  }
+
   if (FBShouldUseOldAppWithPIDSelector) {
     return [self appWithPID:processID];
   }
@@ -79,7 +83,7 @@ static dispatch_once_t onceAppWithPIDToken;
 - (void)fb_activate
 {
   [self activate];
-  if (![self fb_waitForAppElement:APP_STATE_CHANGE_TIMEOUT]) {
+  if (![self waitForState:XCUIApplicationStateRunningForeground timeout:APP_STATE_CHANGE_TIMEOUT / 2] || ![self fb_waitForAppElement:APP_STATE_CHANGE_TIMEOUT / 2]) {
     [FBLogger logFmt:@"The application '%@' is not running in foreground after %.2f seconds", self.bundleID, APP_STATE_CHANGE_TIMEOUT];
   }
 }
@@ -102,16 +106,37 @@ static dispatch_once_t onceAppWithPIDToken;
 
 @implementation XCUIElementQuery (FBCompatibility)
 
-- (XCUIElement *)fb_firstMatch
+- (XCElementSnapshot *)fb_cachedSnapshot
 {
-  if (FBConfiguration.useFirstMatch) {
-    XCUIElement* result = self.firstMatch;
-    return result.exists ? result : nil;
-  }
-  if (!self.element.exists) {
+  static dispatch_once_t onceToken;
+  static BOOL isUniqueMatchingSnapshotAvailable;
+  dispatch_once(&onceToken, ^{
+    isUniqueMatchingSnapshotAvailable = [self respondsToSelector:@selector(uniqueMatchingSnapshotWithError:)];
+  });
+  if (!isUniqueMatchingSnapshotAvailable) {
     return nil;
   }
-  return self.allElementsBoundByAccessibilityElement.firstObject;
+  NSError *error;
+  XCElementSnapshot *result = [self uniqueMatchingSnapshotWithError:&error];
+  if (nil == result && nil != error) {
+    [FBLogger logFmt:@"%@", error.description];
+  }
+  return result;
+}
+
+- (XCUIElement *)fb_firstMatch
+{
+  XCUIElement* match = FBConfiguration.useFirstMatch
+    ? self.firstMatch
+    : self.fb_allMatches.firstObject;
+  return [match exists] ? match : nil;
+}
+
+- (NSArray<XCUIElement *> *)fb_allMatches
+{
+  return FBConfiguration.boundElementsByIndex
+    ? self.allElementsBoundByIndex
+    : self.allElementsBoundByAccessibilityElement;
 }
 
 - (XCElementSnapshot *)fb_elementSnapshotForDebugDescription
@@ -173,6 +198,20 @@ static dispatch_once_t onceAppWithPIDToken;
     result = [(id)[FBXCTestDaemonsProxy testRunnerProxy] respondsToSelector:@selector(_XCT_requestSnapshotForElement:attributes:parameters:reply:)];
   });
   return result;
+}
+
+@end
+
+@implementation XCPointerEvent (FBXcodeCompatibility)
+
++ (BOOL)fb_areKeyEventsSupported
+{
+  static BOOL isKbInputSupported = NO;
+  static dispatch_once_t onceKbInputSupported;
+  dispatch_once(&onceKbInputSupported, ^{
+    isKbInputSupported = [XCPointerEvent.class respondsToSelector:@selector(keyboardEventForKeyCode:keyPhase:modifierFlags:offset:)];
+  });
+  return isKbInputSupported;
 }
 
 @end
