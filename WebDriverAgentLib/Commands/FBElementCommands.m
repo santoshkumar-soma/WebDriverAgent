@@ -120,11 +120,17 @@
 
 + (id<FBResponsePayload>)handleGetAttribute:(FBRouteRequest *)request
 {
+  
+  FBApplication *application = FBApplication.fb_activeApplication;
+  NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
+  NSString *result= application.fb_descriptionRepresentation;
+  NSLog(@"%@ ####activating the application one more time as element not exists", result);
+  
   FBElementCache *elementCache = request.session.elementCache;
   XCUIElement *element = [elementCache elementForUUID:request.parameters[@"uuid"]];
   if (nil == element) {
     return FBResponseWithStatus([FBCommandStatus staleElementReferenceErrorWithMessage:nil
-                                                                             traceback:nil]);
+                                                                          traceback:nil]);
   }
   id attributeValue = [element fb_valueForWDAttributeName:request.parameters[@"name"]];
   attributeValue = attributeValue ?: [NSNull null];
@@ -133,13 +139,22 @@
 
 + (id<FBResponsePayload>)handleGetText:(FBRouteRequest *)request
 {
+  FBApplication *application = FBApplication.fb_activeApplication;
+  NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
+  NSString *result= application.fb_descriptionRepresentation;
+  NSLog(@"%@ ####activating the application one more time as element not exists", result);
   FBElementCache *elementCache = request.session.elementCache;
   XCUIElement *element = [elementCache elementForUUID:request.parameters[@"uuid"]];
   if (nil == element) {
     return FBResponseWithStatus([FBCommandStatus staleElementReferenceErrorWithMessage:nil
                                                                              traceback:nil]);
   }
+  id textvaluefromLastSnapshot = element.fb_lastSnapshot.value;
   id text = FBFirstNonEmptyValue(element.wdValue, element.wdLabel);
+  if(textvaluefromLastSnapshot)
+  {
+    text=textvaluefromLastSnapshot;
+  }
   text = text ?: @"";
   return FBResponseWithObject(text);
 }
@@ -269,7 +284,16 @@
                                                                              traceback:nil]);
   }
   NSError *error;
-  if (![element fb_clearTextWithError:&error]) {
+  
+  if(!element.exists)
+  {
+    FBApplication *application = FBApplication.fb_activeApplication;
+    NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
+  }
+
+  id textValue = FBFirstNonEmptyValue(element.wdValue,element.wdLabel);
+  
+  if (![element fb_clearTextWithError:textValue error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
   }
   return FBResponseWithOK();

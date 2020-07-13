@@ -122,6 +122,8 @@ extern NSString *const FBApplicationMethodNotSupportedException;
  */
 + (BOOL)fb_isSdk11SnapshotApiSupported;
 
++ (BOOL)fb_isSdkLessthan11SnapshotApiSupported;
+
 @end
 
 NS_ASSUME_NONNULL_END

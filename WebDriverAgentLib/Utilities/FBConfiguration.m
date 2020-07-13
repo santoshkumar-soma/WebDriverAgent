@@ -29,15 +29,15 @@ static NSString *const axSettingsClassName = @"AXSettings";
 
 static BOOL FBShouldUseTestManagerForVisibilityDetection = NO;
 static BOOL FBShouldUseSingletonTestManager = YES;
-static BOOL FBShouldUseCompactResponses = YES;
+static BOOL FBShouldUseCompactResponses = NO;
 static BOOL FBShouldWaitForQuiescence = NO;
-static NSString *FBElementResponseAttributes = @"type,label";
+static NSString *FBElementResponseAttributes = @"type,label,value,name,text,rect,enabled,displayed,selected";
 static NSUInteger FBMaxTypingFrequency = 60;
 static NSUInteger FBMjpegServerScreenshotQuality = 25;
 static NSUInteger FBMjpegServerFramerate = 10;
 static NSUInteger FBScreenshotQuality = 1;
 static NSUInteger FBMjpegScalingFactor = 100;
-static NSTimeInterval FBSnapshotTimeout = 15.;
+static NSTimeInterval FBSnapshotTimeout = 45;
 static BOOL FBShouldUseFirstMatch = NO;
 static BOOL FBShouldBoundElementsByIndex = NO;
 // This is diabled by default because enabling it prevents the accessbility snapshot to be taken

@@ -103,6 +103,8 @@ static id FBAXClient = nil;
 {
   if ([FBAXClient respondsToSelector:@selector(attributesForElement:attributes:error:)]) {
     NSError *error = nil;
+    
+    [FBLogger logFmt:@"element debug description: %@", element.debugDescription];
     NSDictionary* result = [FBAXClient attributesForElement:element
                                                  attributes:attributes
                                                       error:&error];

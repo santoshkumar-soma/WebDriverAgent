@@ -43,6 +43,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (BOOL)fb_clearTextWithError:(NSError **)error;
 
+/**
+ Clears text on element.
+ It will try to activate keyboard on element, if element has no keyboard focus.
+ @param error If there is an error, upon return contains an NSError object that describes the problem.
+ @return YES if the operation succeeds, otherwise NO.
+ */
+- (BOOL)fb_clearTextWithError:(NSString *)text error:(NSError **)error;
+
+
 @end
 
 NS_ASSUME_NONNULL_END

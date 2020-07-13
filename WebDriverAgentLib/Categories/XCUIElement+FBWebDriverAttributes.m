@@ -20,6 +20,7 @@
 #import "XCUIElement+FBUtilities.h"
 #import "FBElementUtils.h"
 #import "XCTestPrivateSymbols.h"
+#import "FBLogger.h"
 
 @implementation XCUIElement (WebDriverAttributesForwarding)
 
@@ -37,9 +38,13 @@
     return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsVisibleAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
   }
   if ([name isEqualToString:FBStringify(XCUIElement, isWDAccessible)] ||
-      [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]) {
-    return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsElementAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
+      [name isEqualToString:FBStringify(XCUIElement, isWDAccessibilityContainer)]
+      ||[name isEqualToString:FBStringify(XCUIElement, wdValue)]
+      ||[name isEqualToString:FBStringify(XCUIElement, wdName)]
+      ||[name isEqualToString:FBStringify(XCUIElement, wdLabel)]) {
+    return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsElementAttributeName,FB_ValueAttributeName,FB_TitleAttributeName,FB_IdentifierAttributeName,FB_SelectedAttributeName,FB_PlaceholderValueAttributeName,FB_LabelAttributeName,FB_ElementTypeAttributeName,FB_XCAXAIsVisibleAttributeName]] ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
   }
+  
   
   return (self.fb_cachedSnapshot ?: self.fb_lastSnapshot) ?: [XCElementSnapshot new];
 }
@@ -84,9 +89,10 @@
     value = @([value boolValue]);
   } else if (elementType == XCUIElementTypeTextView ||
              elementType == XCUIElementTypeTextField ||
-             elementType == XCUIElementTypeSecureTextField) {
-    NSString *placeholderValue = self.placeholderValue;
-    value = FBFirstNonEmptyValue(value, placeholderValue);
+             elementType == XCUIElementTypeSecureTextField||
+             elementType == XCUIElementTypeSearchField) {
+   NSString *placeholderValue = self.placeholderValue;
+   value = FBFirstNonEmptyValue(value, placeholderValue);
   }
   value = FBTransferEmptyStringToNil(value);
   if (value) {

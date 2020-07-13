@@ -118,6 +118,7 @@ static const NSTimeInterval FB_ANIMATION_TIMEOUT = 5.0;
                      reply:(void (^)(XCElementSnapshot *, NSError *))block
 {
   NSArray *axAttributes = FBCreateAXAttributes(attributeNames);
+  
   if (XCUIElement.fb_isSdk11SnapshotApiSupported) {
     // XCode 11 has a new snapshot api and the old one will be deprecated soon
     [proxy _XCT_requestSnapshotForElement:accessibilityElement

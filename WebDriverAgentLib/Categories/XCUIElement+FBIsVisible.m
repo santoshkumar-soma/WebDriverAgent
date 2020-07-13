@@ -19,12 +19,15 @@
 #import "XCElementSnapshot+FBHitPoint.h"
 #import "XCUIElement+FBUtilities.h"
 #import "XCTestPrivateSymbols.h"
+#import "XCElementSnapshot.h"
 
 @implementation XCUIElement (FBIsVisible)
 
 - (BOOL)fb_isVisible
 {
   return ([self fb_snapshotWithAttributes:@[FB_XCAXAIsVisibleAttributeName]] ?: self.fb_lastSnapshot).fb_isVisible;
+  
+  /*return CGRectIsEmpty(self.hitPointCoordinate.accessibilityFrame) == NO;*/
 }
 
 @end
@@ -139,7 +142,11 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSNumber 
 
 - (BOOL)fb_isVisible
 {
-  NSNumber *isVisible = self.additionalAttributes[FB_XCAXAIsVisibleAttribute];
+  
+  /*return CGRectIsEmpty(self.visibleFrame) == NO;*/
+  
+  
+ NSNumber *isVisible = self.additionalAttributes[FB_XCAXAIsVisibleAttribute];
   if (isVisible != nil) {
     return isVisible.boolValue;
   }
@@ -210,6 +217,7 @@ static NSMutableDictionary<NSNumber *, NSMutableDictionary<NSString *, NSNumber 
     return [self fb_cacheVisibilityWithValue:YES forAncestors:ancestors];
   }
   return [self fb_cacheVisibilityWithValue:NO forAncestors:ancestors];
+   
 }
 
 @end

@@ -55,6 +55,10 @@ extern NSString *const FBUnknownAttributeException;
  */
 + (nullable NSString *)uidWithAccessibilityElement:(XCAccessibilityElement *)element;
 
+
++ (nullable NSString *)idWithAccessibilityElement:(XCAccessibilityElement *)element;
+
+
 @end
 
 NS_ASSUME_NONNULL_END

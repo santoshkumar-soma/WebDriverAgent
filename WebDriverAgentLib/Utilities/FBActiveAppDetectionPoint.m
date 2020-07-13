@@ -20,7 +20,7 @@
   if ((self = [super init])) {
     CGSize screenSize = [UIScreen mainScreen].bounds.size;
     // Consider the element, which is located close to the top left corner of the screen the on-screen one.
-    CGFloat pointDistance = MIN(screenSize.width, screenSize.height) * (CGFloat) 0.2;
+    CGFloat pointDistance = MIN(screenSize.width, screenSize.height) * (CGFloat) 0.5;
     _coordinates = CGPointMake(pointDistance, pointDistance);
   }
   return self;

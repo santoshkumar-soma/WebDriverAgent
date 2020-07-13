@@ -190,6 +190,16 @@ static dispatch_once_t onceAppWithPIDToken;
     : self.query;
 }
 
++ (BOOL)fb_isSdkLessthan11SnapshotApiSupported
+{
+  static dispatch_once_t newSdkLessthan11SnapshotApiSupported;
+  static BOOL result;
+  dispatch_once(&newSdkLessthan11SnapshotApiSupported, ^{
+    result = [(id)[FBXCTestDaemonsProxy testRunnerProxy] respondsToSelector:@selector(_XCT_snapshotForElement:attributes:parameters:reply:)];
+  });
+  return result;
+}
+
 + (BOOL)fb_isSdk11SnapshotApiSupported
 {
   static dispatch_once_t newSnapshotIsSupported;

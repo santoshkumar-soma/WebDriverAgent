@@ -29,6 +29,7 @@
 #import "XCTestManager_ManagerInterface-Protocol.h"
 #import "XCTestPrivateSymbols.h"
 #import "XCTRunnerDaemonSession.h"
+#import "FBElementUtils.h"
 
 const static NSTimeInterval FBMinimumAppSwitchWait = 3.0;
 static NSString* const FBUnknownBundleId = @"unknown";
@@ -144,6 +145,16 @@ static NSString* const FBUnknownBundleId = @"unknown";
 #if TARGET_OS_TV
   info[@"isFocused"] = [@([snapshot isWDFocused]) stringValue];
 #endif
+  
+  info[@"visibleRect"] = FBwdRectNoInf(@{ @"x": @(CGRectGetMinX(snapshot.visibleFrame)),  @"y": @(CGRectGetMinY(snapshot.visibleFrame)), @"width": @(CGRectGetWidth(snapshot.visibleFrame)), @"height": @(CGRectGetHeight(snapshot.visibleFrame))});
+  NSString *auid = [FBElementUtils uidWithAccessibilityElement:snapshot.accessibilityElement];
+  if (auid) {
+    info[@"accessibilityUID"] = auid;
+  }
+  NSString *aid = [FBElementUtils idWithAccessibilityElement:snapshot.accessibilityElement];
+  if (aid) {
+    info[@"accessibilityID"] = aid;
+  }
 
   if (!recursive) {
     return info.copy;
@@ -161,9 +172,10 @@ static NSString* const FBUnknownBundleId = @"unknown";
 
 + (NSDictionary *)accessibilityInfoForElement:(XCElementSnapshot *)snapshot
 {
+  
   BOOL isAccessible = [snapshot isWDAccessible];
   BOOL isVisible = [snapshot isWDVisible];
-
+  
   NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
 
   if (isAccessible) {
