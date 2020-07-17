@@ -371,9 +371,18 @@ NSString *const FBXPathQueryEvaluationException = @"FBXPathQueryEvaluationExcept
                                                                       onlyChildren:YES];
       NSMutableArray<XCElementSnapshot *> *windowsSnapshots = [NSMutableArray array];
       for (XCUIElement* window in windows) {
-        XCElementSnapshot *windowSnapshot = 0 == snapshotAttributes.count
-          ? window.fb_snapshotWithAllAttributes
-          : [window fb_snapshotWithAttributes:snapshotAttributes.copy];
+        XCElementSnapshot *windowSnapshot ;
+        int index=0;
+        do {
+          index= index+1;
+          if(index>5) break;
+          windowSnapshot = 0 == snapshotAttributes.count
+            ? window.fb_snapshotWithAllAttributes
+            : [window fb_snapshotWithAttributes:snapshotAttributes.copy];
+          if (nil == windowSnapshot) {
+            windowSnapshot =window.fb_lastSnapshotFromQuery;
+          }
+           } while(nil == windowSnapshot);
         if (nil == windowSnapshot) {
           [FBLogger logFmt:@"Skipping source dump for '%@' because its snapshot cannot be resolved", window.description];
           continue;
