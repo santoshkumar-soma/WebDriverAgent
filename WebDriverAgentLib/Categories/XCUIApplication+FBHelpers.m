@@ -178,8 +178,15 @@ static NSString* const FBUnknownBundleId = @"unknown";
   
   NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
   
-  NSString *isVisibleValue = isVisible ? "true" : "false";
-  info[@"Visible"] = FBValueOrNull(isVisibleValue);
+  if (isMainWindow == 0)
+    info[@"isMainWindow"] = @"True";
+      else
+        info[@"isMainWindow"] = @"False";
+  
+  if (isVisible == 0)
+    info[@"visible"] = @"True";
+      else
+        info[@"visible"] = @"False";
   if (isAccessible) {
     if (isVisible) {
       info[@"value"] = FBValueOrNull(snapshot.wdValue);
