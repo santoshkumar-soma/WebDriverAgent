@@ -104,8 +104,12 @@ static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
   if (activeApplicationElements.count > 0) {
     [FBLogger logFmt:@"Getting the most recent active application (out of %@ total items)", @(activeApplicationElements.count)];
     for (XCAccessibilityElement *appElement in activeApplicationElements) {
+      FBApplication *dummyapplication = [FBApplication fb_applicationWithPID:appElement.processIdentifier];
+      [FBLogger logFmt:@"Active Application Stack with bundle id: %@", dummyapplication.bundleID];
+    }
+    for (XCAccessibilityElement *appElement in activeApplicationElements) {
       FBApplication *application = [FBApplication fb_applicationWithPID:appElement.processIdentifier];
-      if (nil != application) {
+      if (nil != application && ![application.bundleID  containsString:@"com.apple.springboard"]) {
         return application;
       }
     }

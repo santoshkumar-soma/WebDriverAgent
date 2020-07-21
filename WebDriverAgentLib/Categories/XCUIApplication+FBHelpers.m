@@ -178,7 +178,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
   
   NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
   
-  if (isMainWindow == 0)
+  if (snapshot.isMainWindow == 0)
     info[@"isMainWindow"] = @"True";
       else
         info[@"isMainWindow"] = @"False";
