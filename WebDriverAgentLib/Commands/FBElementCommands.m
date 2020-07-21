@@ -143,19 +143,32 @@
   NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
   NSString *result= application.fb_descriptionRepresentation;
   NSLog(@"%@ ####activating the application one more time as element not exists", result);
+  
   FBElementCache *elementCache = request.session.elementCache;
   XCUIElement *element = [elementCache elementForUUID:request.parameters[@"uuid"]];
   if (nil == element) {
     return FBResponseWithStatus([FBCommandStatus staleElementReferenceErrorWithMessage:nil
                                                                              traceback:nil]);
   }
+  
   id textvaluefromLastSnapshot = element.fb_lastSnapshot.value;
   id text = FBFirstNonEmptyValue(element.wdValue, element.wdLabel);
-  if(textvaluefromLastSnapshot)
+  
+  //For App Connect Test App Get Text Value to read from last snapshot
+  if(textvaluefromLastSnapshot&&[textvaluefromLastSnapshot length] != 0)
   {
     text=textvaluefromLastSnapshot;
   }
-  text = text ?: @"";
+   text = text ?: @"";
+  
+  
+  //Retry with Loading Snapshot with all the attributes one more time in case of Get Text Value is Empty String
+  if ([text length] == 0)
+  {
+    XCElementSnapshot *elementSnapshot = element.fb_snapshotWithAllAttributes;
+    id textVAlueFromLatestSnapshot = FBFirstNonEmptyValue(elementSnapshot.value, elementSnapshot.label);
+    return FBResponseWithObject(textVAlueFromLatestSnapshot);
+  }
   return FBResponseWithObject(text);
 }
 
