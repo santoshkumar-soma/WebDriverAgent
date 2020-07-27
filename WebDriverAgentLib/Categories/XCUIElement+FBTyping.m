@@ -115,7 +115,7 @@
     if (retry <= MAX_CLEAR_RETRIES - 1) {
       // Last chance retry. Tripple-tap the field to select its content
       [self tapWithNumberOfTaps:3 numberOfTouches:1];
-      return [FBKeyboard typeText:backspaceDeleteSequence error:error];
+      [FBKeyboard typeText:backspaceDeleteSequence error:error];
     }
 
     NSString *textToType = [backspaceDeleteSequence fb_repeatTimes:preClearTextLength];

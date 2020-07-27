@@ -303,10 +303,35 @@
     FBApplication *application = FBApplication.fb_activeApplication;
     NSLog(@"%@ ####activating the application one more time as element not exists", application.bundleID);
   }
-
-  id textValue = FBFirstNonEmptyValue(element.wdValue,element.wdLabel);
   
-  if (![element fb_clearTextWithError:textValue error:&error]) {
+  
+  id textVAlueFromLatestSnapshot;
+  id textvaluefromLastSnapshot = element.fb_lastSnapshot.value;
+  id text = FBFirstNonEmptyValue(element.wdValue, element.wdLabel);
+  
+  //For App Connect Test App Get Text Value to read from last snapshot
+  if(textvaluefromLastSnapshot&&[textvaluefromLastSnapshot length] != 0)
+  {
+    text=textvaluefromLastSnapshot;
+  }
+   text = text ?: @"";
+  
+  
+  //Retry with Loading Snapshot with all the attributes one more time in case of Get Text Value is Empty String
+  if ([text length] == 0)
+  {
+    XCElementSnapshot *elementSnapshot = element.fb_snapshotWithAllAttributes;
+    textVAlueFromLatestSnapshot = FBFirstNonEmptyValue(elementSnapshot.value, elementSnapshot.label);
+    NSLog(@"%@ ####actual Value from WDA", textVAlueFromLatestSnapshot);
+
+  }else
+  {
+    textVAlueFromLatestSnapshot = text;
+  }
+
+  
+  
+  if (![element fb_clearTextWithError:textVAlueFromLatestSnapshot error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
   }
   return FBResponseWithOK();
